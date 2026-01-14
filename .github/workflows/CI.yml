@@ -40,4 +40,4 @@ jobs:
 
       - name: Upload test results (if you add junit later)
         if: always()
-        run: echo "Optional: add junit output later"
+        run: echo "Optional, add junit output later"
