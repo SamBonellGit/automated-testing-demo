@@ -1,43 +1,120 @@
+# ============================================================================
+# CI (Continuous Integration) Workflow
+# ============================================================================
+# This workflow automatically runs tests and checks whenever code is pushed
+# or a pull request is opened. CI helps catch bugs early by running automated
+# checks on every code change.
+# ============================================================================
+
+# The name that appears in the GitHub Actions tab
 name: CI
 
+# ============================================================================
+# TRIGGERS: When should this workflow run?
+# ============================================================================
+# The "on" section defines what events trigger this workflow.
 on:
+  # Run when code is pushed to the "main" branch
   push:
     branches: [ "main" ]
+  # Run when a pull request targets the "main" branch
+  # This lets you check code BEFORE it gets merged
   pull_request:
     branches: [ "main" ]
 
+# ============================================================================
+# JOBS: What tasks should be performed?
+# ============================================================================
+# Jobs are the main units of work. Each job runs on a fresh virtual machine.
+# You can have multiple jobs that run in parallel or sequentially.
 jobs:
+  # This job is named "test" - you can name jobs anything you want
   test:
+    # Specifies the type of virtual machine to run on.
+    # "ubuntu-latest" is a free Linux environment provided by GitHub.
+    # Other options include: windows-latest, macos-latest
     runs-on: ubuntu-latest
 
+    # ========================================================================
+    # STEPS: The individual tasks within this job
+    # ========================================================================
+    # Steps run sequentially, one after another.
+    # If any step fails, the job stops (unless configured otherwise).
     steps:
+      # ----------------------------------------------------------------------
+      # Step 1: Checkout the code
+      # ----------------------------------------------------------------------
+      # This step downloads your repository's code onto the virtual machine.
+      # Without this, the VM would be empty and have no code to work with!
+      # "uses" means we're using a pre-built action from the GitHub marketplace.
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ----------------------------------------------------------------------
+      # Step 2: Setup Node.js
+      # ----------------------------------------------------------------------
+      # Installs Node.js on the virtual machine so we can run JavaScript/TypeScript.
+      # "with" provides configuration options to the action.
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
+          # The version of Node.js to install
           node-version: 20
+          # Caches npm dependencies to speed up future runs
           cache: "npm"
 
+      # ----------------------------------------------------------------------
+      # Step 3: Install dependencies
+      # ----------------------------------------------------------------------
+      # Installs all packages listed in package.json.
+      # "npm ci" is preferred over "npm install" in CI because it's faster
+      # and ensures exact versions from package-lock.json are used.
+      # "run" executes a shell command directly.
       - name: Install dependencies
         run: npm ci
 
+      # ----------------------------------------------------------------------
+      # Step 4: Lint the code
+      # ----------------------------------------------------------------------
+      # Runs the linter to check for code style issues and potential errors.
+      # Linting helps maintain consistent code quality across the project.
       - name: Lint
         run: npm run lint
 
+      # ----------------------------------------------------------------------
+      # Step 5: Run tests
+      # ----------------------------------------------------------------------
+      # Executes the test suite to verify the code works as expected.
+      # If any test fails, this step fails and the workflow stops.
       - name: Test
         run: npm test
 
+      # ----------------------------------------------------------------------
+      # Step 6: Generate coverage report
+      # ----------------------------------------------------------------------
+      # Runs tests with coverage tracking to see how much code is tested.
+      # Coverage reports show which lines of code are executed during tests.
       - name: Coverage
         run: npm run coverage
 
+      # ----------------------------------------------------------------------
+      # Step 7: Upload coverage as an artifact
+      # ----------------------------------------------------------------------
+      # Artifacts are files saved from a workflow run that you can download later.
+      # This uploads the coverage report so you can review it in the GitHub UI.
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
+          # The name for this artifact (appears in the GitHub Actions UI)
           name: coverage
+          # The folder/files to upload
           path: coverage
 
+      # ----------------------------------------------------------------------
+      # Step 8: Placeholder for future test results
+      # ----------------------------------------------------------------------
+      # "if: always()" means this step runs even if previous steps failed.
+      # This is useful for uploading test results regardless of pass/fail.
       - name: Upload test results (if you add junit later)
         if: always()
         run: echo "Optional, add junit output later"
